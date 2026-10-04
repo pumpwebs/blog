@@ -1,55 +1,86 @@
 <!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Quản trị</title>
-<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f3f5f8;margin:0;color:#333}header{background:#000;color:#fff;padding:14px 20px;display:flex;gap:14px;align-items:center}header b{color:#4da3ff;font-size:20px;flex:1}
-button,.b{background:#0b4ea2;color:#fff;border:0;padding:9px 18px;cursor:pointer;border-radius:4px;font-size:14px}button.g{background:#888}button.r{background:#c0392b}
-main{max-width:980px;margin:20px auto;padding:0 15px}.box{background:#fff;padding:22px;border-radius:6px;margin-bottom:16px;box-shadow:0 1px 4px #0002}
+<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f3f5f8;margin:0;color:#333}header{background:#000;color:#fff;padding:12px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}header b{color:#4da3ff;font-size:20px;margin-right:10px}
+button,.b{background:#0b4ea2;color:#fff;border:0;padding:9px 16px;cursor:pointer;border-radius:4px;font-size:14px}button.g{background:#888}button.r{background:#c0392b}header button.on{background:#4da3ff;color:#000}
+main{max-width:1000px;margin:20px auto;padding:0 15px}.box{background:#fff;padding:22px;border-radius:6px;margin-bottom:16px;box-shadow:0 1px 4px #0002}
 input,textarea,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;font:inherit;margin:4px 0 12px}label{font-weight:700;font-size:14px}
-.row{display:flex;gap:12px;align-items:center;border-bottom:1px solid #eee;padding:12px 0}.row div{flex:1}.tag{background:#eee;padding:2px 8px;border-radius:10px;font-size:12px}
-.tb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.tb button{padding:6px 12px;background:#444}.ed{min-height:300px;border:1px solid #ccc;padding:14px;background:#fff;border-radius:4px;line-height:1.6}.ed img{max-width:100%}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.hide{display:none}#login{max-width:360px;margin:100px auto}</style></head><body>
+.row{display:flex;gap:12px;align-items:center;border-bottom:1px solid #eee;padding:12px 0}.row>div{flex:1}.row img{width:60px;height:45px;object-fit:cover}.tag{background:#eee;padding:2px 8px;border-radius:10px;font-size:12px}
+.tb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}.tb button{padding:6px 12px;background:#444}.ed{min-height:280px;border:1px solid #ccc;padding:14px;background:#fff;border-radius:4px;line-height:1.6}.ed img{max-width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.hide{display:none!important}#login{max-width:360px;margin:100px auto}.note{background:#eef5ff;padding:10px;border-radius:4px;font-size:13px;margin-bottom:14px}</style></head><body>
 <div id="login" class="box"><h2>Đăng nhập quản trị</h2><label>Mật khẩu</label><input id="pw" type="password" onkeydown="if(event.key=='Enter')login()"><button onclick="login()">Đăng nhập</button></div>
-<div id="app" class="hide"><header><b>⚙ Quản trị</b><button onclick="tab('list')">Bài viết</button><button onclick="tab('set')">Cài đặt web</button><a href="/" target="_blank" style="color:#fff">Xem web ↗</a><button class="g" onclick="sessionStorage.clear();location.reload()">Thoát</button></header>
-<main>
+<div id="app" class="hide"><header id="hd"></header><main>
 <div id="v_list"></div>
-<div id="v_edit" class="hide"><div class="box"><h3 id="et">Bài viết</h3>
-<div class="two"><div><label>Tiêu đề (Tiếng Việt) *</label><input id="f_title"></div><div><label>Title (English, tùy chọn)</label><input id="f_title_en"></div></div>
-<div class="two"><div><label>Chuyên mục</label><input id="f_cat" placeholder="VD: Tin tức"></div><div><label>Ngày đăng</label><input id="f_date" type="date"></div></div>
-<label>Ảnh bìa</label><input type="file" accept="image/*" onchange="cover(this)"><input id="f_cover" placeholder="Link ảnh bìa (tự điền sau khi chọn ảnh)">
-<div class="two"><div><label>Mô tả ngắn (VI)</label><textarea id="f_ex" rows="2"></textarea></div><div><label>Short description (EN)</label><textarea id="f_ex_en" rows="2"></textarea></div></div>
-<div class="tb"><button class="g" id="lv" onclick="sw('vi')">Nội dung: Tiếng Việt</button><button class="g" id="le" onclick="sw('en')">Content: English</button><span style="flex:1"></span>
+<div id="v_edit" class="hide"><div class="box"><h3 id="et"></h3>
+<div class="two"><div><label>Tiêu đề (Tiếng Việt)</label><input id="f_title"></div><div><label>Title (English)</label><input id="f_title_en"></div></div>
+<div id="w_cat" class="two"><div><label>Danh mục / Nhóm (Tiếng Việt)</label><input id="f_cat" placeholder="VD: Bơm ly tâm"></div><div><label>Category (English)</label><input id="f_cat_en"></div></div>
+<div class="two"><div id="w_date"><label>Ngày đăng</label><input id="f_date" type="date"></div><div><label>Thứ tự hiển thị (số nhỏ hiện trước)</label><input id="f_sort" type="number" value="0"></div></div>
+<div id="w_cover"><label>Ảnh đại diện</label><input type="file" accept="image/*" onchange="cover(this)"><input id="f_cover" placeholder="Link ảnh (tự điền sau khi chọn ảnh)"></div>
+<div id="w_ex" class="two"><div><label>Mô tả ngắn (VI)</label><textarea id="f_ex" rows="2"></textarea></div><div><label>Short description (EN)</label><textarea id="f_ex_en" rows="2"></textarea></div></div>
+<div id="w_body"><div class="tb"><button class="g" id="lv" onclick="sw('vi')">Nội dung: Tiếng Việt</button><button class="g" id="le" onclick="sw('en')">Content: English</button><span style="flex:1"></span>
 <button onmousedown="event.preventDefault();c('bold')"><b>B</b></button><button onmousedown="event.preventDefault();c('italic')"><i>I</i></button><button onmousedown="event.preventDefault();c('formatBlock','h2')">Tiêu đề</button><button onmousedown="event.preventDefault();c('formatBlock','p')">Đoạn</button><button onmousedown="event.preventDefault();c('insertUnorderedList')">• Danh sách</button><button onmousedown="event.preventDefault();lk()">Link</button><label class="b" style="margin:0;font-weight:400">🖼 Chèn ảnh<input type="file" accept="image/*" class="hide" onchange="ins(this)"></label></div>
-<div id="ed_vi" class="ed" contenteditable></div><div id="ed_en" class="ed hide" contenteditable></div>
+<div id="ed_vi" class="ed" contenteditable></div><div id="ed_en" class="ed hide" contenteditable></div></div>
 <p><label><input id="f_pub" type="checkbox" checked style="width:auto"> Hiển thị công khai (bỏ tick = lưu nháp)</label></p>
-<button onclick="save()">💾 Lưu bài</button> <button class="g" onclick="tab('list')">Hủy</button></div></div>
-<div id="v_set" class="hide"><div class="box"><h3>Cài đặt website</h3><div id="sf"></div><button onclick="saveSet()">💾 Lưu cài đặt</button></div></div>
+<label>Dịch tự động</label><select id="f_tr"><option value="fill">Tự điền phần còn trống (khuyên dùng)</option><option value="vi2en">Dịch lại từ Tiếng Việt → English (ghi đè)</option><option value="en2vi">Dịch lại từ English → Tiếng Việt (ghi đè)</option><option value="none">Không dịch</option></select>
+<button id="sv" onclick="save()">💾 Lưu</button> <button class="g" onclick="lst(ty)">Hủy</button></div></div>
+<div id="v_set" class="hide"><div class="box"><h3>Cài đặt website</h3><div class="note">Chỉ cần điền một ngôn ngữ, ngôn ngữ còn lại được tự dịch khi lưu.</div><div id="sf"></div><button id="ss" onclick="saveSet()">💾 Lưu cài đặt</button></div></div>
+<div id="v_msg" class="hide"></div>
 </main></div>
 <script>
-let pw=sessionStorage.pw||"",cur={},rng=null,cl="vi",$=s=>document.querySelector(s);
+let pw=sessionStorage.pw||"",cur={},ty="product",cl="vi",rng=null,$=s=>document.querySelector(s);
+const TY={product:"Sản phẩm",application:"Ứng dụng",news:"Tin tức",about:"Giới thiệu",customer:"Khách hàng"};
+const SHOW={product:"cat cover ex body",application:"cat cover ex body date",news:"cat cover ex body date",about:"body",customer:"cover"};
 const H=()=>({"x-admin":pw,"content-type":"application/json"});
 async function api(u,o={}){const r=await fetch(u,{...o,headers:H()});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||r.status);return d}
 const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-async function login(){pw=$("#pw").value;try{await api("/api/login",{method:"POST"});sessionStorage.pw=pw;start()}catch(e){alert("Sai mật khẩu, hoặc chưa cài ADMIN_PASSWORD / cơ sở dữ liệu (xem hướng dẫn).")}}
-function start(){$("#login").classList.add("hide");$("#app").classList.remove("hide");tab("list")}
-function tab(n){["list","edit","set"].forEach(k=>$("#v_"+k).classList.toggle("hide",k!=n));if(n=="list")lst();if(n=="set")sets()}
-async function lst(){const p=await api("/api/posts");$("#v_list").innerHTML=`<div class="box"><button onclick="edit()">＋ Viết bài mới</button><div style="margin-top:14px">${p.map(x=>`<div class="row"><div><b>${esc(x.title)}</b><br><small>${esc(x.cat)} · ${x.created}</small> ${x.published?"":'<span class="tag">Nháp</span>'}</div><button onclick="edit('${x.slug}')">Sửa</button><button class="r" onclick="del(${x.id})">Xóa</button></div>`).join("")||"Chưa có bài."}</div></div>`}
-async function edit(slug){cur=slug?await api("/api/posts/"+slug):{published:1,created:new Date().toISOString().slice(0,10)};
- $("#et").textContent=slug?"Sửa bài viết":"Bài viết mới";
- for(const [k,i] of [["title","f_title"],["title_en","f_title_en"],["cat","f_cat"],["created","f_date"],["cover","f_cover"],["excerpt","f_ex"],["excerpt_en","f_ex_en"]])$("#"+i).value=cur[k]||"";
- $("#f_pub").checked=!!cur.published;$("#ed_vi").innerHTML=cur.body||"";$("#ed_en").innerHTML=cur.body_en||"";sw("vi");tab("edit")}
+async function login(){pw=$("#pw").value;try{await api("/api/login",{method:"POST"});sessionStorage.pw=pw;start()}catch(e){alert("Sai mật khẩu hoặc chưa cài ADMIN_PASSWORD.")}}
+function start(){$("#login").classList.add("hide");$("#app").classList.remove("hide");
+ $("#hd").innerHTML="<b>⚙ Quản trị</b>"+Object.entries(TY).map(([k,v])=>`<button data-k="${k}" onclick="lst('${k}')">${v}</button>`).join("")+`<button data-k="msg" onclick="msgs()">Tin nhắn</button><button data-k="set" onclick="sets()">Cài đặt web</button><span style="flex:1"></span><a href="/" target="_blank" style="color:#fff">Xem web ↗</a> <button class="g" onclick="sessionStorage.clear();location.reload()">Thoát</button>`;lst("product")}
+function view(n,k){["list","edit","set","msg"].forEach(x=>$("#v_"+x).classList.toggle("hide",x!=n));document.querySelectorAll("#hd button[data-k]").forEach(b=>b.classList.toggle("on",b.dataset.k==k))}
+async function lst(t){ty=t;view("list",t);const p=await api("/api/items?type="+t);
+ $("#v_list").innerHTML=`<div class="box"><h3>${TY[t]}</h3><button onclick="edit()">＋ Thêm mới</button><div style="margin-top:14px">${p.map(x=>`<div class="row">${x.cover?`<img src="${x.cover}">`:""}<div><b>${esc(x.title||x.title_en)}</b><br><small>${esc(x.cat)} ${["news","application"].includes(t)?"· "+x.created:""}</small> ${x.published?"":'<span class="tag">Nháp</span>'}</div><button onclick="edit('${x.slug}')">Sửa</button><button class="r" onclick="del(${x.id})">Xóa</button></div>`).join("")||"Chưa có mục nào."}</div></div>`}
+async function edit(slug){cur=slug?await api("/api/items/"+slug):{published:1,created:new Date().toISOString().slice(0,10),sort:0};
+ $("#et").textContent=TY[ty]+(slug?" – Sửa":" – Thêm mới");
+ for(const [k,i] of [["title","f_title"],["title_en","f_title_en"],["cat","f_cat"],["cat_en","f_cat_en"],["created","f_date"],["cover","f_cover"],["excerpt","f_ex"],["excerpt_en","f_ex_en"],["sort","f_sort"]])$("#"+i).value=cur[k]??"";
+ $("#f_pub").checked=!!cur.published;$("#ed_vi").innerHTML=cur.body||"";$("#ed_en").innerHTML=cur.body_en||"";$("#f_tr").value="fill";
+ ["cat","cover","ex","body","date"].forEach(k=>$("#w_"+k).classList.toggle("hide",!SHOW[ty].split(" ").includes(k)));sw("vi");view("edit",ty)}
 function sw(l){cl=l;$("#ed_vi").classList.toggle("hide",l!="vi");$("#ed_en").classList.toggle("hide",l!="en");$("#lv").style.background=l=="vi"?"#0b4ea2":"#888";$("#le").style.background=l=="en"?"#0b4ea2":"#888"}
 document.addEventListener("selectionchange",()=>{const s=getSelection();if(s.rangeCount&&s.anchorNode&&s.anchorNode.parentElement&&s.anchorNode.parentElement.closest(".ed"))rng=s.getRangeAt(0)});
-const ed=()=>$("#ed_"+cl);
-function c(a,v){ed().focus();document.execCommand(a,false,v)}
+const ed=()=>$("#ed_"+cl);function c(a,v){ed().focus();document.execCommand(a,false,v)}
 function lk(){const u=prompt("Dán đường link (https://...)");if(u)c("createLink",u)}
-const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1280/i.width),cv=document.createElement("canvas");cv.width=i.width*k;cv.height=i.height*k;cv.getContext("2d").drawImage(i,0,0,cv.width,cv.height);r(cv.toDataURL("image/jpeg",.8))};i.src=URL.createObjectURL(f)});
+const shrink=f=>new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1280/i.width),cv=document.createElement("canvas");cv.width=i.width*k;cv.height=i.height*k;cv.getContext("2d").drawImage(i,0,0,cv.width,cv.height);r(cv.toDataURL("image/jpeg",.82))};i.src=URL.createObjectURL(f)});
 async function up(f){const d=await shrink(f);const r=await fetch("/api/img",{method:"POST",headers:H(),body:d});const j=await r.json();if(!r.ok)throw new Error(j.error);return j.url}
 async function cover(i){try{$("#f_cover").value=await up(i.files[0])}catch(e){alert("Lỗi tải ảnh: "+e.message)}}
 async function ins(i){try{const u=await up(i.files[0]);ed().focus();if(rng){const s=getSelection();s.removeAllRanges();s.addRange(rng)}document.execCommand("insertImage",false,u)}catch(e){alert("Lỗi tải ảnh: "+e.message)}i.value=""}
-async function save(){if(!$("#f_title").value.trim())return alert("Nhập tiêu đề");
- const b={id:cur.id,title:$("#f_title").value,title_en:$("#f_title_en").value,cat:$("#f_cat").value,created:$("#f_date").value,cover:$("#f_cover").value,excerpt:$("#f_ex").value,excerpt_en:$("#f_ex_en").value,body:$("#ed_vi").innerHTML,body_en:$("#ed_en").innerHTML,published:$("#f_pub").checked};
- try{await api("/api/posts",{method:"POST",body:JSON.stringify(b)});alert("Đã lưu!");tab("list")}catch(e){alert("Lỗi: "+e.message)}}
-async function del(id){if(confirm("Xóa bài này?")){await api("/api/posts/"+id,{method:"DELETE"});lst()}}
-const SF=[["brand","Tên thương hiệu (logo)"],["phone","Điện thoại"],["email","Email"],["address","Địa chỉ"],["hours","Giờ làm việc"],["hero","Tiêu đề lớn trang chủ (VI)"],["hero_en","Tiêu đề lớn (EN)"],["sub","Câu giới thiệu ngắn (VI)"],["sub_en","Câu giới thiệu (EN)"],["about","Nội dung trang Giới thiệu (VI)"],["about_en","About page (EN)"]];
-async function sets(){const s=await fetch("/api/settings").then(r=>r.json());$("#sf").innerHTML=SF.map(([k,l])=>`<label>${l}</label>${k.startsWith("about")?`<textarea id="s_${k}" rows="6">${esc(s[k])}</textarea>`:`<input id="s_${k}" value="${esc(s[k])}">`}`).join("")}
-async function saveSet(){const o={};SF.forEach(([k])=>o[k]=$("#s_"+k).value);try{await api("/api/settings",{method:"POST",body:JSON.stringify(o)});alert("Đã lưu!")}catch(e){alert("Lỗi: "+e.message)}}
+/* ---- dịch tự động ---- */
+const emp=v=>!v||(!/<img/.test(v)&&!v.replace(/<[^>]*>|&nbsp;/g,"").trim());
+async function trTexts(a,f,t){const o=[];for(let i=0;i<a.length;i+=15)o.push(...(await api("/api/translate",{method:"POST",body:JSON.stringify({texts:a.slice(i,i+15),from:f,to:t})})).texts);return o}
+async function trField(v,f,t,html){if(!html)return (await trTexts(v.split("\n"),f,t)).join("\n");
+ const ps=v.split(/(<[^>]+>)/),ix=[],tx=[];ps.forEach((p,i)=>{if(p&&p[0]!="<"&&p.replace(/&nbsp;/g,"").trim()){ix.push(i);tx.push(p)}});
+ const o=await trTexts(tx,f,t);ix.forEach((k,j)=>ps[k]=o[j]);return ps.join("")}
+async function autoTr(o,F,mode){if(mode=="none")return;let err=0;
+ for(const [k,h] of F){const a=o[k],b=o[k+"_en"];let d=null;
+  if(mode=="vi2en"&&!emp(a))d="vi";else if(mode=="en2vi"&&!emp(b))d="en";
+  else if(mode=="fill"){if(!emp(a)&&emp(b))d="vi";else if(emp(a)&&!emp(b))d="en"}
+  try{if(d=="vi")o[k+"_en"]=await trField(a,"vi","en",h);else if(d=="en")o[k]=await trField(b,"en","vi",h)}catch(e){err=1}}
+ if(err)alert("Một phần chưa dịch được (hết hạn mức dịch miễn phí?). Dữ liệu vẫn được lưu, bạn có thể tự nhập bản dịch.")}
+async function save(){const g=i=>$("#"+i).value,b={id:cur.id,type:ty,title:g("f_title"),title_en:g("f_title_en"),cat:g("f_cat"),cat_en:g("f_cat_en"),created:g("f_date"),cover:g("f_cover"),excerpt:g("f_ex"),excerpt_en:g("f_ex_en"),body:$("#ed_vi").innerHTML,body_en:$("#ed_en").innerHTML,sort:+g("f_sort")||0,published:$("#f_pub").checked};
+ if(!b.title.trim()&&!b.title_en.trim())return alert("Nhập tiêu đề");
+ const bt=$("#sv");bt.disabled=true;bt.textContent="Đang dịch & lưu…";
+ try{await autoTr(b,[["title",0],["excerpt",0],["cat",0],["body",1]],g("f_tr"));await api("/api/items",{method:"POST",body:JSON.stringify(b)});lst(ty)}catch(e){alert("Lỗi: "+e.message)}
+ bt.disabled=false;bt.textContent="💾 Lưu"}
+async function del(id){if(confirm("Xóa mục này?")){await api("/api/items/"+id,{method:"DELETE"});lst(ty)}}
+/* ---- cài đặt ---- */
+const SF=[["brand","Tên thương hiệu (logo chữ)"],["phone","Điện thoại"],["email","Email"],["video","Link video nhúng YouTube (https://www.youtube.com/embed/…)"],["logo_img","Logo (ảnh, tùy chọn)","i"],["hero_img","Ảnh nền banner trang chủ","i"]];
+const SP=[["welcome","Lời chào trên cùng"],["hotline","Dòng hỗ trợ (VD: Cần hỗ trợ?)"],["hero","Tiêu đề banner"],["hero_list","Danh sách trên banner (mỗi dòng một mục)","t"],["address","Địa chỉ"],["hours","Giờ làm việc"],["intro","Giới thiệu ngắn (chân trang)","t"],["products_intro","Đoạn mô tả trang Sản phẩm","t"]];
+const inp=(id,v,t)=>t=="t"?`<textarea id="${id}" rows="3">${esc(v)}</textarea>`:`<input id="${id}" value="${esc(v)}">`;
+async function sets(){view("set","set");const s=await fetch("/api/settings").then(r=>r.json());
+ $("#sf").innerHTML=SF.map(([k,l,t])=>`<label>${l}</label>${t=="i"?`<input type="file" accept="image/*" onchange="sUp(this,'s_${k}')">`:""}${inp("s_"+k,s[k])}`).join("")+SP.map(([k,l,t])=>`<label>${l}</label><div class="two"><div>${inp("s_"+k,s[k],t)}</div><div>${inp("s_"+k+"_en",s[k+"_en"],t)}</div></div>`).join("")+'<p style="font-size:12px;color:#888">Cột trái: Tiếng Việt · Cột phải: English</p>'}
+async function sUp(i,id){try{$("#"+id).value=await up(i.files[0])}catch(e){alert("Lỗi: "+e.message)}}
+async function saveSet(){const o={};SF.forEach(([k])=>o[k]=$("#s_"+k).value);SP.forEach(([k])=>{o[k]=$("#s_"+k).value;o[k+"_en"]=$("#s_"+k+"_en").value});
+ const bt=$("#ss");bt.disabled=true;bt.textContent="Đang dịch & lưu…";
+ try{await autoTr(o,SP.map(([k])=>[k,0]),"fill");await api("/api/settings",{method:"POST",body:JSON.stringify(o)});alert("Đã lưu!");sets()}catch(e){alert("Lỗi: "+e.message)}
+ bt.disabled=false;bt.textContent="💾 Lưu cài đặt"}
+async function msgs(){view("msg","msg");const m=await api("/api/messages");
+ $("#v_msg").innerHTML=`<div class="box"><h3>Tin nhắn từ khách</h3>${m.map(x=>`<div class="row"><div><b>${esc(x.name)}</b> · ${esc(x.phone)} · ${esc(x.email)} · ${esc(x.country)}<br><small>${x.created.slice(0,16).replace("T"," ")}</small><p>${esc(x.msg)}</p></div><button class="r" onclick="dm(${x.id})">Xóa</button></div>`).join("")||"Chưa có tin nhắn."}</div>`}
+async function dm(id){await api("/api/messages/"+id,{method:"DELETE"});msgs()}
 if(pw)api("/api/login",{method:"POST"}).then(start).catch(()=>{});
 </script></body></html>
