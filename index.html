@@ -3,7 +3,7 @@
 :root{--blue:#0b4ea2;--navy:#0a2540;--grey:#f3f3f3}*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Roboto,Arial,sans-serif;color:#555;line-height:1.7}a{color:inherit;text-decoration:none}.wrap{max-width:1170px;margin:0 auto;padding:0 15px}
 .top{background:#000;color:#fff;height:56px;position:relative;overflow:hidden}.top .wrap{height:100%;display:flex;align-items:center}
-.hot{position:absolute;right:0;top:18px;height:56px;width:58%;background:var(--blue);clip-path:polygon(6% 0,100% 0,100% 100%,0 100%);display:flex;align-items:center;padding-left:9%;color:#fff}
+.ar{position:absolute;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;padding:14px}.hot{position:absolute;right:0;top:18px;height:56px;width:58%;background:var(--blue);clip-path:polygon(6% 0,100% 0,100% 100%,0 100%);display:flex;align-items:center;padding-left:9%;color:#fff}
 .hdr{padding:20px 0}.hdr .wrap{display:flex;gap:34px;align-items:center;flex-wrap:wrap}.logo{font:900 54px/1 Impact,"Arial Narrow",sans-serif;color:var(--blue);letter-spacing:-2px}.logo img{height:64px}
 .info{font-size:14px}.info b{display:block;color:#000}
 nav{background:#000;position:relative;z-index:10}nav .wrap{display:flex;height:60px;align-items:stretch}nav ul{list-style:none;display:flex;flex:1}nav li{position:relative}
@@ -30,7 +30,7 @@ footer{background:var(--navy);color:#cfd8e3;padding:60px 0 0;font-size:14px}foot
 @media(max-width:900px){.hot{display:none}.grid,.two,.side,footer .cols{grid-template-columns:1fr}.logos{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:30px}.hero li{font-size:24px}.burger{display:flex!important}nav .wrap{flex-wrap:wrap;height:auto}nav ul{display:none;flex-direction:column;width:100%;order:3}nav ul.open{display:flex}.dd{position:static;box-shadow:none}.cta{display:none}.row{flex-direction:column}.row .im{width:100%}}
 </style></head><body>
 <div class="top"><div class="wrap" id="wel"></div><div class="hot" id="hot"></div></div>
-<div class="hdr"><div class="wrap"><a class="logo" href="#home" id="logo"></a><div class="info"><b id="a1"></b><span id="a2"></span></div><div class="info"><b id="m1"></b><span id="m2"></span></div><div class="info"><b id="h1"></b><span id="h2"></span></div></div></div>
+<div class="hdr"><div class="wrap"><a class="logo" href="#home" id="logo"></a><div class="info"><b id="m1"></b><span id="m2"></span></div><div class="info"><b id="h1"></b><span id="h2"></span></div></div></div>
 <nav><div class="wrap"><button class="burger" style="display:none" onclick="document.getElementById('mn').classList.toggle('open')">☰</button><ul id="mn"></ul><button onclick="setL()" id="lb"></button><a class="cta" href="#contact" id="cta"></a></div></nav>
 <main id="app"></main>
 <footer id="ftr"><div class="wrap"><div class="cols" id="ft"></div><div class="cp" id="cp"></div></div></footer>
@@ -53,7 +53,7 @@ function fm(){const x=t();return `<form onsubmit="return sendF(this)"><input nam
 function sendF(f){fetch("/api/contact",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(f)))}).then(()=>{alert(t().thanks);f.reset()});return false}
 const R={
 home(){const x=t(),ps=G("product").filter(p=>hc=="all"||pcat(p)==hc).slice(0,6),vd=S.video;
- return `<section>${S.hero_img?`<img src="${S.hero_img}" style="width:100%;display:block" alt="">`:`<div class="ph" style="aspect-ratio:1920/700;border-radius:0">Banner</div>`}</section>
+ return `${bn()}
  <section class="sec"><div class="wrap"><h2><em>${x.ourP[0]}</em>${x.ourP[1]}</h2><div class="bar"></div>${tabs([["all",x.all],...cats("product").map(c=>[c.k,c.l])],hc,"setHc")}<div class="grid">${ps.map(card).join("")||x.none}</div></div></section>
  <section class="band"><div class="wrap"><p>${x.band[0]}<b>${x.band[1]}</b></p><a class="btn" href="#contact">${x.start}</a></div></section>
  <section class="sec"><div class="wrap two"><div><h2><em>${x.video}</em></h2><div class="bar"></div><p style="margin-bottom:24px;font-size:18px">${x.videoT}</p><a class="btn" href="#contact">${x.contact}</a></div>${vd?`<iframe src="${esc(vd)}" style="width:100%;aspect-ratio:16/9;border:0" allowfullscreen></iframe>`:`<div class="ph">▶ Video</div>`}</div></section>
@@ -68,17 +68,23 @@ async about(s){const L=G("about"),x=t();s=s||(L[0]&&L[0].slug);let b="";if(s){co
  return ban(x.about,x.about)+`<div class="wrap" style="padding-top:30px"><div class="sub">${L.map(a=>`<a href="#about/${a.slug}" class="${a.slug==s?'on':''}">${esc(pk(a,"title"))}</a>`).join("")}</div><div class="sec c" style="padding-top:10px">${b||x.none}</div></div>`},
 contact(){const x=t();return ban(x.contact,x.contact)+`<section class="sec"><div class="wrap two"><div class="c"><p><b>${x.addr}:</b> ${esc(pk(S,"address"))}</p><p><b>${x.phone}:</b> ${esc(S.phone)}</p><p><b>Email:</b> <a href="mailto:${esc(S.email)}">${esc(S.email)}</a></p><p><b>${x.hrs}:</b> ${esc(pk(S,"hours"))}</p></div>${fm()}</div></section>`}};
 const setHc=c=>{hc=c;go()};
+const BN=()=>[S.hero_img,S.hero_img2,S.hero_img3].filter(Boolean);let si=0,stm=null;
+function bn(){const b=BN();if(!b.length)return `<div class="ph" style="aspect-ratio:1920/700;border-radius:0">Banner</div>`;
+ const ar=(d,p)=>`<button class="ar" style="${d}:0" onclick="sg(${p})" aria-label="${p>0?'next':'prev'}"><svg width="30" height="52" viewBox="0 0 30 52"><polyline points="${p>0?'4,2 26,26 4,50':'26,2 4,26 26,50'}" fill="none" stroke="#0b4ea2" stroke-width="3"/></svg></button>`;
+ return `<section style="position:relative;overflow:hidden" onmouseenter="sp(0)" onmouseleave="sp(1)"><div id="sltr" style="display:flex;transition:transform .6s ease">${b.map(u=>`<img src="${u}" style="width:100%;flex:none;display:block" alt="">`).join("")}</div>${b.length>1?ar("left",-1)+ar("right",1):""}</section>`}
+function sg(d){const n=BN().length,e=$("sltr");if(!e||n<2)return;si=(si+d+n)%n;e.style.transform=`translateX(-${si*100}%)`}
+function sp(on){clearInterval(stm);if(on&&BN().length>1&&$("sltr"))stm=setInterval(()=>sg(1),3000)}
 function setL(){lang=lang=="vi"?"en":"vi";localStorage.lang=lang;go()}
 function chrome(){const x=t(),h=location.hash.slice(1),p=h.split("/")[0];document.documentElement.lang=lang;
  if(S.favicon)$("fav").href=S.favicon;$("ftr").style.background=S.footer_bg?`linear-gradient(rgba(10,37,64,.88),rgba(10,37,64,.88)),url(${S.footer_bg}) center/cover`:"";$("wel").textContent=pk(S,"welcome");$("hot").textContent=pk(S,"hotline")+" "+(S.phone||"");
  $("logo").innerHTML=S.logo_img?`<img src="${S.logo_img}" alt="">`:esc(S.brand||"LOGO");document.title=S.brand||"Website";
- $("a1").textContent=x.addr;$("a2").textContent=pk(S,"address");$("m1").textContent=x.mail;$("m2").textContent=S.email||"";$("h1").textContent=x.hrs;$("h2").textContent=pk(S,"hours");
+ $("m1").textContent=x.mail;$("m2").textContent=S.email||"";$("h1").textContent=x.hrs;$("h2").textContent=pk(S,"hours");
  const dd=(l,f)=>l.length?`<div class="dd">${l.map(f).join("")}</div>`:"";const li=(k,d="")=>`<li><a href="#${k}" class="${p==k||(k=="home"&&!p)?'on':''}">${x[k]}</a>${d}</li>`;
  $("mn").innerHTML=li("home")+li("about",dd(G("about"),a=>`<a href="#about/${a.slug}">${esc(pk(a,"title"))}</a>`))+li("products",dd(cats("product"),c=>`<a href="#products/${E(c.k)}">${esc(c.l)}</a>`))+li("application",dd(CT("application"),c=>`<a href="#application/${E(c.cat)}">${esc(pk(c,"cat"))}</a>`))+li("news",dd(CT("news"),c=>`<a href="#news/${E(c.cat)}">${esc(pk(c,"cat"))}</a>`))+li("contact");
  $("lb").textContent=x.lang;$("cta").textContent=x.adv+"  →";
  $("ft").innerHTML=`<div><div class="logo">${S.footer_logo?`<img src="${S.footer_logo}" style="height:64px" alt="">`:S.logo_img?`<img src="${S.logo_img}" style="height:56px;background:#fff;padding:6px;border-radius:4px" alt="">`:esc(S.brand)}</div><p style="margin-top:12px">${esc(pk(S,"intro"))}</p></div><div><h4>${x.pc}</h4><ul>${cats("product").map(c=>`<li onclick="location.hash='products/${E(c.k)}'">▸ ${esc(c.l)}</li>`).join("")}</ul></div><div><h4>${x.qk}</h4><ul>${["about","products","application","news","contact"].map(k=>`<li onclick="location.hash='${k}'">${x[k]}</li>`).join("")}</ul></div><div><h4>${x.contact}</h4>${fm()}</div>`;
  $("cp").textContent="© "+new Date().getFullYear()+" "+(S.brand||"")}
-async function go(){const h=location.hash.slice(1)||"home",i=h.indexOf("/"),p=i<0?h:h.slice(0,i),a=i<0?"":h.slice(i+1);chrome();$("app").innerHTML=await (R[p]||R.home)(a);$("mn").classList.remove("open")}
+async function go(){const h=location.hash.slice(1)||"home",i=h.indexOf("/"),p=i<0?h:h.slice(0,i),a=i<0?"":h.slice(i+1);chrome();$("app").innerHTML=await (R[p]||R.home)(a);$("mn").classList.remove("open");si=0;sp(p=="home")}
 addEventListener("hashchange",()=>{go();scrollTo(0,0)});
 Promise.all([fetch("/api/settings").then(r=>r.json()),fetch("/api/items").then(r=>r.json())]).then(([s,a])=>{S=s;A=Array.isArray(a)?a:[];go()}).catch(()=>{$("app").innerHTML="<p style='padding:60px 15px'>Chưa kết nối cơ sở dữ liệu.</p>"});
 </script></body></html>
