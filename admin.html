@@ -23,19 +23,19 @@ input,textarea,select{width:100%;padding:10px;border:1px solid #ccc;border-radiu
 <label>Dịch tự động</label><select id="f_tr"><option value="fill">Tự điền phần còn trống (khuyên dùng)</option><option value="vi2en">Dịch lại từ Tiếng Việt → English (ghi đè)</option><option value="en2vi">Dịch lại từ English → Tiếng Việt (ghi đè)</option><option value="none">Không dịch</option></select>
 <button id="sv" onclick="save()">💾 Lưu</button> <button class="g" onclick="lst(ty)">Hủy</button></div></div>
 <div id="v_set" class="hide"><div class="box"><h3>Cài đặt website</h3><div class="note">Chỉ cần điền một ngôn ngữ, ngôn ngữ còn lại được tự dịch khi lưu.</div><div id="sf"></div><button id="ss" onclick="saveSet()">💾 Lưu cài đặt</button></div></div>
-<div id="v_msg" class="hide"></div>
+<div id="v_msg" class="hide"></div><div id="v_contact" class="hide"></div><div id="v_seed" class="hide"></div>
 </main></div>
 <script>
 let pw=sessionStorage.pw||"",cur={},ty="product",cl="vi",rng=null,$=s=>document.querySelector(s);
 const TY={pgroup:"Nhóm sản phẩm",product:"Sản phẩm",application:"Ứng dụng",news:"Tin tức",about:"Giới thiệu",customer:"Khách hàng"};
-const SHOW={pgroup:"cover",product:"grp cover ex body",application:"cat cover ex body date",news:"cat cover ex body date",about:"body",customer:"cover"};
+const SHOW={pgroup:"cover body",product:"grp cover ex body",application:"cat cover ex body date",news:"cat cover ex body date",about:"body",customer:"cover"};
 const H=()=>({"x-admin":pw,"content-type":"application/json"});
 async function api(u,o={}){const r=await fetch(u,{...o,headers:H()});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||r.status);return d}
 const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 async function login(){pw=$("#pw").value;try{await api("/api/login",{method:"POST"});sessionStorage.pw=pw;start()}catch(e){alert("Sai mật khẩu hoặc chưa cài ADMIN_PASSWORD.")}}
 function start(){$("#login").classList.add("hide");$("#app").classList.remove("hide");
- $("#hd").innerHTML="<b>⚙ Quản trị</b>"+Object.entries(TY).map(([k,v])=>`<button data-k="${k}" onclick="lst('${k}')">${v}</button>`).join("")+`<button data-k="msg" onclick="msgs()">Tin nhắn</button><button data-k="set" onclick="sets()">Cài đặt web</button><span style="flex:1"></span><a href="/" target="_blank" style="color:#fff">Xem web ↗</a> <button class="g" onclick="sessionStorage.clear();location.reload()">Thoát</button>`;lst("product")}
-function view(n,k){["list","edit","set","msg"].forEach(x=>$("#v_"+x).classList.toggle("hide",x!=n));document.querySelectorAll("#hd button[data-k]").forEach(b=>b.classList.toggle("on",b.dataset.k==k))}
+ $("#hd").innerHTML="<b>⚙ Quản trị</b>"+Object.entries(TY).map(([k,v])=>`<button data-k="${k}" onclick="lst('${k}')">${v}</button>`).join("")+`<button data-k="contact" onclick="contactTab()">Liên hệ</button><button data-k="msg" onclick="msgs()">Tin nhắn</button><button class="g" data-k="seed" onclick="seedTab()">📥 Dữ liệu mẫu</button><button data-k="set" onclick="sets()">Cài đặt web</button><span style="flex:1"></span><a href="/" target="_blank" style="color:#fff">Xem web ↗</a> <button class="g" onclick="sessionStorage.clear();location.reload()">Thoát</button>`;lst("product")}
+function view(n,k){["list","edit","set","msg","contact","seed"].forEach(x=>$("#v_"+x).classList.toggle("hide",x!=n));document.querySelectorAll("#hd button[data-k]").forEach(b=>b.classList.toggle("on",b.dataset.k==k))}
 async function lst(t){ty=t;view("list",t);const p=await api("/api/items?type="+t);let h;
  const row=x=>`<div class="row">${x.cover?`<img src="${x.cover}">`:""}<div><b>${esc(x.title||x.title_en)}</b><br><small>${t=="product"?"":esc(x.cat)} ${["news","application"].includes(t)?"· "+x.created:""}</small> ${x.published?"":'<span class="tag">Nháp</span>'}</div><button onclick="edit('${x.slug}')">Sửa</button><button class="r" onclick="del(${x.id})">Xóa</button></div>`;
  if(t=="product"){const gs=await api("/api/items?type=pgroup"),used=new Set();
@@ -66,12 +66,12 @@ async function trTexts(a,f,t){const o=[];for(let i=0;i<a.length;i+=15)o.push(...
 async function trField(v,f,t,html){if(!html)return (await trTexts(v.split("\n"),f,t)).join("\n");
  const ps=v.split(/(<[^>]+>)/),ix=[],tx=[];ps.forEach((p,i)=>{if(p&&p[0]!="<"&&p.replace(/&nbsp;/g,"").trim()){ix.push(i);tx.push(p)}});
  const o=await trTexts(tx,f,t);ix.forEach((k,j)=>ps[k]=o[j]);return ps.join("")}
-async function autoTr(o,F,mode){if(mode=="none")return;let err=0;
+async function autoTr(o,F,mode,q){if(mode=="none")return;let err=0;
  for(const [k,h] of F){const a=o[k],b=o[k+"_en"];let d=null;
   if(mode=="vi2en"&&!emp(a))d="vi";else if(mode=="en2vi"&&!emp(b))d="en";
   else if(mode=="fill"){if(!emp(a)&&emp(b))d="vi";else if(emp(a)&&!emp(b))d="en"}
   try{if(d=="vi")o[k+"_en"]=await trField(a,"vi","en",h);else if(d=="en")o[k]=await trField(b,"en","vi",h)}catch(e){err=1}}
- if(err)alert("Một phần chưa dịch được (hết hạn mức dịch miễn phí?). Dữ liệu vẫn được lưu, bạn có thể tự nhập bản dịch.")}
+ if(err&&!q)alert("Một phần chưa dịch được (hết hạn mức dịch miễn phí?). Dữ liệu vẫn được lưu, bạn có thể tự nhập bản dịch.")}
 async function save(){const g=i=>$("#"+i).value,b={id:cur.id,type:ty,title:g("f_title"),title_en:g("f_title_en"),cat:ty=="product"?g("f_grp"):g("f_cat"),cat_en:ty=="product"?"":g("f_cat_en"),created:g("f_date"),cover:g("f_cover"),excerpt:g("f_ex"),excerpt_en:g("f_ex_en"),body:$("#ed_vi").innerHTML,body_en:$("#ed_en").innerHTML,sort:+g("f_sort")||0,published:$("#f_pub").checked};
  if(!b.title.trim()&&!b.title_en.trim())return alert("Nhập tiêu đề");
  const bt=$("#sv");bt.disabled=true;bt.textContent="Đang dịch & lưu…";
@@ -79,18 +79,76 @@ async function save(){const g=i=>$("#"+i).value,b={id:cur.id,type:ty,title:g("f_
  bt.disabled=false;bt.textContent="💾 Lưu"}
 async function del(id){if(confirm("Xóa mục này?")){await api("/api/items/"+id,{method:"DELETE"});lst(ty)}}
 /* ---- cài đặt ---- */
-const SF=[["logo_img","Logo (ảnh) – nên dùng PNG nền trong suốt, ngang khoảng 300–600px","i",600,"image/png"],["footer_logo","Logo chân trang – PNG nền trong suốt, hợp nền tối (bỏ trống thì dùng logo ở trên)","i",600,"image/png"],["footer_bg","Ảnh nền chân trang (tùy chọn, ảnh tối như trang gốc)","i",1920,"image/jpeg"],["brand","Tên thương hiệu (hiện khi chưa có logo ảnh, và ở tab trình duyệt)"],["favicon","Favicon – biểu tượng nhỏ trên tab trình duyệt (ảnh vuông, vd 256×256)","i",128,"image/png"],["hero_img","Ảnh banner 1 (ảnh ngang, khoảng 1920×700)","i",1920,"image/jpeg"],["hero_img2","Ảnh banner 2 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["hero_img3","Ảnh banner 3 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["phone","Điện thoại"],["email","Email"],["video","Link video nhúng YouTube (https://www.youtube.com/embed/…)"]];
-const SP=[["welcome","Lời chào trên cùng"],["hotline","Dòng hỗ trợ (VD: Cần hỗ trợ?)"],["address","Địa chỉ"],["hours","Giờ làm việc"],["intro","Giới thiệu ngắn (chân trang)","t"],["products_intro","Đoạn mô tả trang Sản phẩm","t"]];
+const SF=[["logo_img","Logo (ảnh) – nên dùng PNG nền trong suốt, ngang khoảng 300–600px","i",600,"image/png"],["footer_logo","Logo chân trang – PNG nền trong suốt, hợp nền tối (bỏ trống thì dùng logo ở trên)","i",600,"image/png"],["footer_bg","Ảnh nền chân trang (tùy chọn, ảnh tối như trang gốc)","i",1920,"image/jpeg"],["brand","Tên thương hiệu (hiện khi chưa có logo ảnh, và ở tab trình duyệt)"],["favicon","Favicon – biểu tượng nhỏ trên tab trình duyệt (ảnh vuông, vd 256×256)","i",128,"image/png"],["hero_img","Ảnh banner 1 (ảnh ngang, khoảng 1920×700)","i",1920,"image/jpeg"],["hero_img2","Ảnh banner 2 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["hero_img3","Ảnh banner 3 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["video","Link video nhúng YouTube (https://www.youtube.com/embed/…)"]];
+const SP=[["welcome","Lời chào trên cùng"],["hotline","Dòng hỗ trợ (VD: Cần hỗ trợ?)"],["intro","Giới thiệu ngắn (chân trang)","t"],["products_intro","Đoạn mô tả trang Sản phẩm","t"]];
 const inp=(id,v,t)=>t=="t"?`<textarea id="${id}" rows="3">${esc(v)}</textarea>`:`<input id="${id}" value="${esc(v)}">`;
 async function sets(){view("set","set");const s=await fetch("/api/settings").then(r=>r.json());
  $("#sf").innerHTML=SF.map(([k,l,t])=>`<label>${l}</label>${t=="i"?`<input type="file" accept="image/*" onchange="sUp(this,'s_${k}')"><img id="p_s_${k}" src="${esc(s[k])}" style="max-height:80px;max-width:100%;background:#7f8fa3;margin:4px 0;${s[k]?"":"display:none"}">`:""}${inp("s_"+k,s[k])}`).join("")+SP.map(([k,l,t])=>`<label>${l}</label><div class="two"><div>${inp("s_"+k,s[k],t)}</div><div>${inp("s_"+k+"_en",s[k+"_en"],t)}</div></div>`).join("")+'<p style="font-size:12px;color:#888">Cột trái: Tiếng Việt · Cột phải: English</p>'}
 async function sUp(i,id){try{const f=SF.find(x=>"s_"+x[0]==id),u=await up(i.files[0],f[3],f[4]);$("#"+id).value=u;const p=$("#p_"+id);p.src=u;p.style.display="block"}catch(e){alert("Lỗi: "+e.message)}}
-async function saveSet(){const o={};SF.forEach(([k])=>o[k]=$("#s_"+k).value);SP.forEach(([k])=>{o[k]=$("#s_"+k).value;o[k+"_en"]=$("#s_"+k+"_en").value});
+async function saveSet(){const o=await fetch("/api/settings").then(r=>r.json());SF.forEach(([k])=>o[k]=$("#s_"+k).value);SP.forEach(([k])=>{o[k]=$("#s_"+k).value;o[k+"_en"]=$("#s_"+k+"_en").value});
  const bt=$("#ss");bt.disabled=true;bt.textContent="Đang dịch & lưu…";
  try{await autoTr(o,SP.map(([k])=>[k,0]),"fill");await api("/api/settings",{method:"POST",body:JSON.stringify(o)});alert("Đã lưu!");sets()}catch(e){alert("Lỗi: "+e.message)}
  bt.disabled=false;bt.textContent="💾 Lưu cài đặt"}
 async function msgs(){view("msg","msg");const m=await api("/api/messages");
  $("#v_msg").innerHTML=`<div class="box"><h3>Tin nhắn từ khách</h3>${m.map(x=>`<div class="row"><div><b>${esc(x.name)}</b> · ${esc(x.phone)} · ${esc(x.email)} · ${esc(x.country)}<br><small>${x.created.slice(0,16).replace("T"," ")}</small><p>${esc(x.msg)}</p></div><button class="r" onclick="dm(${x.id})">Xóa</button></div>`).join("")||"Chưa có tin nhắn."}</div>`}
 async function dm(id){await api("/api/messages/"+id,{method:"DELETE"});msgs()}
+/* ---- hình minh họa tự vẽ (SVG) ---- */
+const R=(x,y,w,h,f,r)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r||0}" fill="${f}"/>`,Ci=(x,y,r,f)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"/>`,B="#1d6fe0",D="#0b4ea2",Gy="#6b7a90",Yl="#f2b705",Kk="#2a3b55",Lt="#cfe0ff",Sv="#8a97aa";
+const fins=(x,y,h,n,s)=>Array.from({length:n},(_,i)=>R(x+i*s,y,4,h,D)).join(""),skid=R(70,372,500,20,Kk,4),MOT=R(100,262,170,110,B,14)+fins(120,274,86,8,19)+R(270,300,34,32,Yl);
+const PUMP={
+cp:()=>skid+MOT+Ci(410,310,70,D)+Ci(410,310,34,Lt)+Ci(410,310,12,Gy)+R(480,288,60,44,Gy,4)+R(396,196,30,50,Gy)+R(380,184,62,14,Sv,3),
+split:()=>skid+MOT+R(304,282,236,90,D,34)+R(330,246,184,42,B,16)+R(340,196,38,54,Gy)+R(330,184,58,14,Sv,3)+R(450,196,38,54,Gy)+R(440,184,58,14,Sv,3)+R(520,300,28,44,Kk,4),
+multi:()=>skid+MOT+R(304,290,226,66,B,10)+[330,370,410,450,490].map(x=>R(x,284,10,78,D)).join("")+R(520,280,22,90,D,6)+R(340,230,34,60,Gy)+R(330,220,54,12,Sv,3)+R(450,230,34,60,Gy)+R(440,220,54,12,Sv,3),
+vert:()=>R(190,372,260,20,Kk,4)+R(250,120,140,250,B,12)+[160,200,240,280,320].map(y=>R(244,y,152,10,D)).join("")+R(262,50,116,80,D,14)+R(296,30,48,24,Gy,6)+R(130,310,64,34,Gy)+R(446,310,64,34,Gy),
+inline:()=>R(200,372,240,20,Kk,4)+R(250,60,140,124,B,14)+fins(268,74,96,8,15)+R(300,184,40,34,Yl)+Ci(320,284,64,D)+Ci(320,284,28,Lt)+R(196,266,76,36,Gy)+R(368,266,76,36,Gy)+R(184,258,14,52,Sv)+R(442,258,14,52,Sv),
+sub:()=>R(300,40,40,60,Gy)+R(270,96,100,190,B,40)+R(256,276,128,64,D,18)+R(280,330,80,16,Kk,4)+'<path d="M70 340q40-26 80 0t80 0t80 0t80 0t80 0t80 0v60H70z" fill="#4aa3e8" opacity=".55"/>',
+pkg:()=>skid+R(100,276,126,96,B,12)+fins(114,286,76,6,18)+R(230,294,100,78,D,14)+Ci(280,333,24,Lt)+R(330,300,80,14,Gy)+R(410,150,120,222,Sv,40)+R(410,240,120,10,Kk)+R(464,100,14,54,Gy)+Ci(471,92,18,"#fff")+Ci(471,92,9,D),
+lrvp:()=>skid+MOT+R(304,258,236,114,B,30)+R(296,250,26,130,D,8)+R(520,250,26,130,D,8)+R(350,196,20,66,Gy)+R(450,196,20,66,Gy)+R(336,186,148,14,Sv,3)+Ci(430,318,22,Lt),
+comp:()=>skid+R(80,276,130,96,B,12)+fins(94,286,76,6,19)+R(210,306,26,32,Yl)+R(236,266,190,106,D,28)+R(430,150,110,222,Sv,36)+R(430,250,110,10,Kk)+R(300,206,20,62,Gy)+R(290,196,60,14,Sv,3)};
+const IC={factory:'<path d="M10 100V50l30 20V50l30 20V50l30 20V15h20v85z" fill="§"/>',drop:'<path d="M60 10C60 10 20 60 20 80a40 40 0 0 0 80 0C100 60 60 10 60 10z" fill="§"/>',flask:'<path d="M45 8h30v32l30 56a10 10 0 0 1-9 14H24a10 10 0 0 1-9-14l30-56z" fill="§"/>',bolt:'<path d="M72 4 24 66h30l-10 50 52-66H66z" fill="§"/>',gear:'<circle cx="60" cy="60" r="34" fill="none" stroke="§" stroke-width="18" stroke-dasharray="12 8.5"/><circle cx="60" cy="60" r="22" fill="none" stroke="§" stroke-width="10"/>',ship:'<path d="M8 72h104l-16 30H24z" fill="§"/><rect x="38" y="42" width="44" height="30" fill="§"/><rect x="54" y="20" width="12" height="22" fill="§"/>',leaf:'<path d="M104 10C44 10 14 44 14 86c0 10 4 20 4 20 22-30 42-40 62-50-26 14-42 30-52 54 52 4 88-36 76-100z" fill="§"/>',globe:'<circle cx="60" cy="60" r="48" fill="none" stroke="§" stroke-width="8"/><ellipse cx="60" cy="60" rx="20" ry="48" fill="none" stroke="§" stroke-width="6"/><path d="M12 60h96M20 36h80M20 84h80" stroke="§" stroke-width="5" fill="none"/>',chart:'<rect x="14" y="70" width="22" height="42" fill="§"/><rect x="48" y="44" width="22" height="68" fill="§"/><rect x="82" y="14" width="22" height="98" fill="§"/>',tank:'<rect x="24" y="24" width="72" height="88" rx="30" fill="§"/><rect x="50" y="8" width="20" height="18" fill="§"/>',shield:'<path d="M60 6 102 22v38c0 28-18 44-42 54C36 104 18 88 18 60V22z" fill="§"/>',wrench:'<path d="M86 8a30 30 0 0 0-28 40L10 96l14 14 48-48a30 30 0 0 0 40-28l-18 18-16-4-4-16z" fill="§"/>',flame:'<path d="M60 6c10 28 36 42 36 74a36 36 0 0 1-72 0c0-18 10-28 20-38 0 14 8 18 12 18-4-20-2-34 4-54z" fill="§"/>'};
+function art(p,i,h){const col=`hsl(${h},60%,42%)`,pm=PUMP[p]||PUMP.cp;
+ const bg=`<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h},70%,95%)"/><stop offset="1" stop-color="hsl(${h},65%,80%)"/></linearGradient></defs><rect width="640" height="440" fill="url(#g)"/>`+Ci(540,70,130,`hsla(${h},80%,100%,.4)`)+Ci(80,400,110,`hsla(${h},80%,100%,.3)`);
+ const sc=i?`<g transform="translate(36,36) scale(1.5)" opacity=".9">${(IC[i]||"").replaceAll("§",col)}</g><g transform="translate(250,150) scale(.62)">${pm()}</g>`:`<g transform="translate(0,-10)">${pm()}</g>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440">${bg}${sc}</svg>`}
+async function upSvg(s){const d="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(s))),r=await fetch("/api/img",{method:"POST",headers:H(),body:d}),j=await r.json();if(!r.ok)throw new Error(j.error);return j.url}
+/* ---- nhập dữ liệu mẫu ---- */
+async function seedTab(){view("seed","seed");$("#v_seed").innerHTML=`<div class="box"><h3>Nhập dữ liệu mẫu</h3><div class="note">Thêm sẵn: trang Giới thiệu, mô tả 3 nhóm sản phẩm, 26 sản phẩm, 30 bài Ứng dụng, 20 bài Tin tức, kèm hình minh họa tự vẽ. Mục trùng tiêu đề sẽ được bỏ qua; các bài mẫu cũ sẽ bị xóa. Mất vài phút, đừng đóng trang. Cần có file <b>seed.json</b> trong kho GitHub.</div><label><input type="checkbox" id="sd_tr" checked style="width:auto"> Tự dịch sang English (nên bật Workers AI)</label><p><button id="sd_go" onclick="runSeed()">▶ Bắt đầu nhập</button></p><pre id="sd_log" style="background:#111;color:#9f9;padding:12px;max-height:340px;overflow:auto;font-size:12px;white-space:pre-wrap"></pre></div>`}
+async function runSeed(){const L=$("#sd_log"),log=m=>{L.textContent+=m+"\n";L.scrollTop=1e9},tr=$("#sd_tr").checked;$("#sd_go").disabled=true;
+ try{const D=await fetch("/seed.json?v="+Date.now()).then(r=>{if(!r.ok)throw new Error("Không thấy seed.json trong kho GitHub");return r.json()});
+  const ex=await api("/api/items"),by={};ex.forEach(x=>by[x.type+"|"+x.title]=x);
+  for(const sl of D.purge||[]){const x=ex.find(e=>e.slug==sl);if(x){await api("/api/items/"+x.id,{method:"DELETE"});log("Đã xóa bài mẫu: "+sl)}}
+  let n=0;const F=o=>[["title",0],["excerpt",0],...(["product","pgroup"].includes(o.type)?[]:[["cat",0]]),["body",1]];
+  for(const it of D.items){n++;const tag=`[${n}/${D.items.length}] `;
+   try{const e=it.slug?ex.find(x=>x.slug==it.slug):by[it.type+"|"+it.title];let o;
+    if(e){o=await api("/api/items/"+e.slug);
+     if(it.slug){if((o.body||"").length>=80){log(tag+"giữ nguyên (đã có nội dung): "+(o.title||it.slug));continue}
+      o.body=it.body;o.body_en="";if(it.title){o.title=it.title;o.title_en=""}if(!o.cover&&it.p)o.cover=await upSvg(art(it.p,it.i,it.h))}
+     else if(!(tr&&(emp(o.title_en)||(!emp(o.body)&&emp(o.body_en))))){log(tag+"bỏ qua (đã có): "+it.title);continue}}
+    else o={type:it.type,title:it.title,title_en:it.title_en||"",cat:it.cat||"",cat_en:it.cat_en||"",excerpt:it.excerpt||"",excerpt_en:"",body:it.body,body_en:"",cover:it.p?await upSvg(art(it.p,it.i,it.h)):"",created:it.d,sort:it.s||0,published:true};
+    if(tr)await autoTr(o,F(o),"fill",true);
+    await api("/api/items",{method:"POST",body:JSON.stringify(o)});log(tag+"OK: "+(o.title||it.slug))}catch(er){log(tag+"LỖI: "+er.message)}}
+  log("=== Xong! Mở trang web để xem. ===")}catch(er){log("LỖI: "+er.message)}
+ $("#sd_go").disabled=false}
+/* ---- tab Liên hệ ---- */
+let CR=[];
+async function contactTab(){view("contact","contact");const s=await fetch("/api/settings").then(r=>r.json());
+ CR=Array.isArray(s.contacts)?s.contacts:[{l:"Địa chỉ",l_en:"Address",v:s.address||""},{l:"Điện thoại",l_en:"Phone",v:s.phone||""},{l:"Email",l_en:"Email",v:s.email||""},{l:"Giờ làm việc",l_en:"Working hours",v:s.hours||""}];
+ const f=(id,l,v,ph)=>`<label>${l}</label><input id="${id}" value="${esc(v)}" placeholder="${ph||""}">`;
+ $("#v_contact").innerHTML=`<div class="box"><h3>Thông tin liên hệ</h3><div class="note">Phần 1 hiện ở đầu trang. Phần 2 hiện ở trang <b>Liên hệ</b>: thêm, bớt dòng tùy ý (địa chỉ, nhiều số điện thoại, Zalo, WeChat, Facebook…). Chỉ cần điền một ngôn ngữ, bản kia tự dịch khi lưu.</div>
+ <h4>1. Hiển thị ở đầu trang</h4>${f("c_phone","Điện thoại / hotline",s.phone)}${f("c_email","Email",s.email)}<label>Giờ làm việc (Tiếng Việt | English)</label><div class="two"><input id="c_hours" value="${esc(s.hours)}"><input id="c_hours_en" value="${esc(s.hours_en)}"></div>
+ <h4>2. Các dòng ở trang Liên hệ</h4><div id="crows"></div><p><button class="g" onclick="addC()">＋ Thêm dòng</button></p>
+ ${f("c_map","Link bản đồ nhúng (tùy chọn)",s.map,"Google Maps → Chia sẻ → Nhúng bản đồ → chép link trong src=…")}
+ <p><button id="cs" onclick="saveC()">💾 Lưu thông tin liên hệ</button></p></div>`;drawC()}
+function drawC(){$("#crows").innerHTML=CR.map((r,i)=>`<div class="row" style="align-items:flex-start"><div><input data-i="${i}" data-k="l" value="${esc(r.l)}" placeholder="Nhãn (VD: Địa chỉ)"></div><div><input data-i="${i}" data-k="l_en" value="${esc(r.l_en)}" placeholder="Label (EN)"></div><div style="flex:2"><input data-i="${i}" data-k="v" value="${esc(r.v)}" placeholder="Nội dung"></div><button class="r" onclick="delC(${i})">Xóa</button></div>`).join("")}
+function grabC(){document.querySelectorAll("#crows input").forEach(e=>CR[e.dataset.i][e.dataset.k]=e.value)}
+function addC(){grabC();CR.push({l:"",l_en:"",v:""});drawC()}
+function delC(i){grabC();CR.splice(i,1);drawC()}
+async function saveC(){grabC();const o=await fetch("/api/settings").then(r=>r.json()),g=i=>$("#"+i).value;
+ Object.assign(o,{phone:g("c_phone"),email:g("c_email"),hours:g("c_hours"),hours_en:g("c_hours_en"),map:g("c_map")});
+ const bt=$("#cs");bt.disabled=true;bt.textContent="Đang lưu…";
+ try{CR=CR.filter(r=>r.l||r.l_en||r.v);for(const r of CR)await autoTr(r,[["l",0]],"fill",true);await autoTr(o,[["hours",0]],"fill",true);o.contacts=CR;
+  await api("/api/settings",{method:"POST",body:JSON.stringify(o)});alert("Đã lưu!");contactTab()}catch(e){alert("Lỗi: "+e.message)}
+ bt.disabled=false;bt.textContent="💾 Lưu thông tin liên hệ"}
+
 if(pw)api("/api/login",{method:"POST"}).then(start).catch(()=>{});
 </script></body></html>
