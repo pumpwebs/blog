@@ -123,6 +123,7 @@ async function runSeed(){const L=$("#sd_log"),log=m=>{L.textContent+=m+"\n";L.sc
     if(e){o=await api("/api/items/"+e.slug);
      if(it.slug){if((o.body||"").length>=80){log(tag+"giữ nguyên (đã có nội dung): "+(o.title||it.slug));continue}
       o.body=it.body;o.body_en="";if(it.title){o.title=it.title;o.title_en=""}if(!o.cover&&it.p)o.cover=await upSvg(art(it.p,it.i,it.h))}
+     else if(it.up&&(o.body||"").length<it.body.length*.6){o.body=it.body;o.body_en="";if(it.excerpt){o.excerpt=it.excerpt;o.excerpt_en=""}log(tag+"nâng cấp bài: "+it.title)}
      else if(!(tr&&(emp(o.title_en)||(!emp(o.body)&&emp(o.body_en))))){log(tag+"bỏ qua (đã có): "+it.title);continue}}
     else o={type:it.type,title:it.title,title_en:it.title_en||"",cat:it.cat||"",cat_en:it.cat_en||"",excerpt:it.excerpt||"",excerpt_en:"",body:it.body,body_en:"",cover:it.p?await upSvg(art(it.p,it.i,it.h)):"",created:it.d,sort:it.s||0,published:true};
     if(tr)await autoTr(o,F(o),"fill",true);
