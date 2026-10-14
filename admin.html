@@ -80,7 +80,7 @@ async function save(){const g=i=>$("#"+i).value,b={id:cur.id,type:ty,title:g("f_
 async function del(id){if(confirm("Xóa mục này?")){await api("/api/items/"+id,{method:"DELETE"});lst(ty)}}
 /* ---- cài đặt ---- */
 const SF=[["logo_img","Logo (ảnh) – nên dùng PNG nền trong suốt, ngang khoảng 300–600px","i",600,"image/png"],["footer_logo","Logo chân trang – PNG nền trong suốt, hợp nền tối (bỏ trống thì dùng logo ở trên)","i",600,"image/png"],["footer_bg","Ảnh nền chân trang (tùy chọn, ảnh tối như trang gốc)","i",1920,"image/jpeg"],["brand","Tên thương hiệu (hiện khi chưa có logo ảnh, và ở tab trình duyệt)"],["favicon","Favicon – biểu tượng nhỏ trên tab trình duyệt (ảnh vuông, vd 256×256)","i",128,"image/png"],["hero_img","Ảnh banner 1 (ảnh ngang, khoảng 1920×700)","i",1920,"image/jpeg"],["hero_img2","Ảnh banner 2 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["hero_img3","Ảnh banner 3 (tùy chọn, cùng kích thước ảnh 1)","i",1920,"image/jpeg"],["video","Link video nhúng YouTube (https://www.youtube.com/embed/…)"]];
-const SP=[["welcome","Lời chào trên cùng"],["hotline","Dòng hỗ trợ (VD: Cần hỗ trợ?)"],["intro","Giới thiệu ngắn (chân trang)","t"],["products_intro","Đoạn mô tả trang Sản phẩm","t"]];
+const SP=[["seo_title","SEO: tiêu đề trang chủ (≤ 60 ký tự, có từ khóa chính)"],["seo_desc","SEO: mô tả trang chủ (≤ 155 ký tự)","t"],["welcome","Lời chào trên cùng"],["hotline","Dòng hỗ trợ (VD: Cần hỗ trợ?)"],["intro","Giới thiệu ngắn (chân trang)","t"],["products_intro","Đoạn mô tả trang Sản phẩm","t"]];
 const inp=(id,v,t)=>t=="t"?`<textarea id="${id}" rows="3">${esc(v)}</textarea>`:`<input id="${id}" value="${esc(v)}">`;
 async function sets(){view("set","set");const s=await fetch("/api/settings").then(r=>r.json());
  $("#sf").innerHTML=SF.map(([k,l,t])=>`<label>${l}</label>${t=="i"?`<input type="file" accept="image/*" onchange="sUp(this,'s_${k}')"><img id="p_s_${k}" src="${esc(s[k])}" style="max-height:80px;max-width:100%;background:#7f8fa3;margin:4px 0;${s[k]?"":"display:none"}">`:""}${inp("s_"+k,s[k])}`).join("")+SP.map(([k,l,t])=>`<label>${l}</label><div class="two"><div>${inp("s_"+k,s[k],t)}</div><div>${inp("s_"+k+"_en",s[k+"_en"],t)}</div></div>`).join("")+'<p style="font-size:12px;color:#888">Cột trái: Tiếng Việt · Cột phải: English</p>'}
@@ -119,11 +119,11 @@ async function runSeed(){const L=$("#sd_log"),log=m=>{L.textContent+=m+"\n";L.sc
   for(const sl of D.purge||[]){const x=ex.find(e=>e.slug==sl);if(x){await api("/api/items/"+x.id,{method:"DELETE"});log("Đã xóa bài mẫu: "+sl)}}
   let n=0;const F=o=>[["title",0],["excerpt",0],...(["product","pgroup"].includes(o.type)?[]:[["cat",0]]),["body",1]];
   for(const it of D.items){n++;const tag=`[${n}/${D.items.length}] `;
-   try{const e=it.slug?ex.find(x=>x.slug==it.slug):by[it.type+"|"+it.title];let o;
+   try{const e=it.slug?ex.find(x=>x.slug==it.slug):(by[it.type+"|"+(it.old||it.title)]||by[it.type+"|"+it.title]);let o;
     if(e){o=await api("/api/items/"+e.slug);
-     if(it.slug){if((o.body||"").length>=80){log(tag+"giữ nguyên (đã có nội dung): "+(o.title||it.slug));continue}
-      o.body=it.body;o.body_en="";if(it.title){o.title=it.title;o.title_en=""}if(!o.cover&&it.p)o.cover=await upSvg(art(it.p,it.i,it.h))}
-     else if(it.up&&(o.body||"").length<it.body.length*.6){o.body=it.body;o.body_en="";if(it.excerpt){o.excerpt=it.excerpt;o.excerpt_en=""}log(tag+"nâng cấp bài: "+it.title)}
+     if(it.slug){if((o.body||"").length>=80&&!it.force){log(tag+"giữ nguyên (đã có nội dung): "+(o.title||it.slug));continue}
+      o.body=it.body;o.body_en="";if(it.title){o.title=it.title;o.title_en=it.title_en||""}if(!o.cover&&it.p)o.cover=await upSvg(art(it.p,it.i,it.h))}
+     else if(it.up&&(it.old?!(o.body||"").includes("<!--v3-->"):(o.body||"").length<it.body.length*.6)){o.body=it.body;o.body_en="";if(it.old){o.title=it.title;o.title_en=""}if(it.excerpt){o.excerpt=it.excerpt;o.excerpt_en=""}log(tag+"nâng cấp bài: "+it.title)}
      else if(!(tr&&(emp(o.title_en)||(!emp(o.body)&&emp(o.body_en))))){log(tag+"bỏ qua (đã có): "+it.title);continue}}
     else o={type:it.type,title:it.title,title_en:it.title_en||"",cat:it.cat||"",cat_en:it.cat_en||"",excerpt:it.excerpt||"",excerpt_en:"",body:it.body,body_en:"",cover:it.p?await upSvg(art(it.p,it.i,it.h)):"",created:it.d,sort:it.s||0,published:true};
     if(tr)await autoTr(o,F(o),"fill",true);
